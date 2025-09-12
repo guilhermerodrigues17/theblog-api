@@ -16,6 +16,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request.type';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UpdateUserResponseDto } from './dto/update-user-response.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('user')
 export class UserController {
@@ -44,6 +45,16 @@ export class UserController {
       req.user.id,
       updateUserDto,
     );
+    return new UpdateUserResponseDto(userUpdated);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/password')
+  async updatePassword(
+    @Req() req: AuthenticatedRequest,
+    @Body() dto: UpdatePasswordDto,
+  ) {
+    const userUpdated = await this.userService.updatePassword(req.user.id, dto);
     return new UpdateUserResponseDto(userUpdated);
   }
 
