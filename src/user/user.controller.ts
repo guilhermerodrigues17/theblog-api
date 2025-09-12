@@ -10,24 +10,23 @@ import {
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    const userCreated = await this.userService.create(createUserDto);
+    return new UserResponseDto(userCreated);
   }
 
   @Get()
-  findAll() {
-    return this.userService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findById(id);
+  async findAll() {
+    const users = await this.userService.findAll();
+    const dtoResponse = users.map(user => new UserResponseDto(user));
+    return dtoResponse;
   }
 
   @Patch(':id')
