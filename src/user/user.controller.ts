@@ -15,6 +15,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import type { AuthenticatedRequest } from 'src/auth/types/authenticated-request.type';
 import { UserResponseDto } from './dto/user-response.dto';
+import { UpdateUserResponseDto } from './dto/update-user-response.dto';
 
 @Controller('user')
 export class UserController {
@@ -35,11 +36,15 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Patch('me')
-  update(
+  async update(
     @Req() req: AuthenticatedRequest,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.userService.update(req.user.id, updateUserDto);
+    const userUpdated = await this.userService.update(
+      req.user.id,
+      updateUserDto,
+    );
+    return new UpdateUserResponseDto(userUpdated);
   }
 
   @Delete(':id')
