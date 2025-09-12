@@ -14,16 +14,18 @@ export class UserService {
     private readonly hashingService: HashingService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
-    const exists = await this.userRepository.exists({
-      where: {
-        email: createUserDto.email,
-      },
+  async failIfEmailExists(email: string) {
+    const exists = await this.userRepository.existsBy({
+      email,
     });
 
     if (exists) {
       throw new ConflictException('Email already exists in database');
     }
+  }
+
+  async create(createUserDto: CreateUserDto) {
+    await this.failIfEmailExists(createUserDto.email);
 
     const hashedPassword = await this.hashingService.hash(
       createUserDto.password,
