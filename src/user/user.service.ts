@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
@@ -49,16 +54,34 @@ export class UserService {
     return this.userRepository.find();
   }
 
-  findById(id: string) {
-    return this.userRepository.findOneBy({ id });
+  async findById(id: string) {
+    const userFound = await this.userRepository.findOneBy({ id });
+    if (!userFound) {
+      throw new NotFoundException('user not found');
+    }
+    return userFound;
   }
 
   findByEmail(email: string) {
     return this.userRepository.findOneBy({ email });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, dto: UpdateUserDto) {
+    if (!dto.name && !dto.email) {
+      throw new BadRequestException('invalid data');
+    }
+
+    const user = await this.findById(id);
+
+    user.name = dto.name ?? user.name;
+
+    if (dto.email && dto.email !== user.email) {
+      await this.failIfEmailExists(dto.email);
+      user.email = dto.email;
+      user.forceLogout = true;
+    }
+
+    return this.save(user);
   }
 
   remove(id: number) {
