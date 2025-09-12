@@ -39,12 +39,20 @@ export class UserService {
     return userCreated;
   }
 
+  save(user: User) {
+    return this.userRepository.save(user);
+  }
+
   findAll() {
     return `This action returns all user`;
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
+  }
+
+  findByEmail(email: string) {
+    return this.userRepository.findOneBy({ email });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
