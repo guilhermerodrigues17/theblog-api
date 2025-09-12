@@ -19,5 +19,6 @@ export class CreateUserDto {
 
   @IsString({ message: 'field password must be a string' })
   @IsNotEmpty({ message: 'field password cannot be empty' })
+  @MinLength(6, { message: 'password is too short' })
   password: string;
 }
