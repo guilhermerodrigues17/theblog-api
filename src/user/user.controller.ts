@@ -4,7 +4,6 @@ import {
   Post,
   Body,
   Patch,
-  Param,
   Delete,
   UseGuards,
   Req,
@@ -36,6 +35,13 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async findOne(@Req() req: AuthenticatedRequest) {
+    const userFound = await this.userService.findById(req.user.id);
+    return new UserResponseDto(userFound);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('me')
   async update(
     @Req() req: AuthenticatedRequest,
@@ -58,8 +64,10 @@ export class UserController {
     return new UpdateUserResponseDto(userUpdated);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  async remove(@Req() req: AuthenticatedRequest) {
+    const deletedUser = await this.userService.remove(req.user.id);
+    return new UserResponseDto(deletedUser);
   }
 }
