@@ -1,3 +1,4 @@
+import { User } from 'src/user/entities/user.entity';
 import { Post } from '../entities/post.entity';
 
 export class PostResponseDto {
@@ -10,6 +11,7 @@ export class PostResponseDto {
   readonly published: boolean;
   readonly createdAt: Date;
   readonly updatedAt: Date;
+  readonly author: Pick<User, 'id' | 'email' | 'name'>;
 
   constructor(post: Post) {
     this.id = post.id;
@@ -21,5 +23,10 @@ export class PostResponseDto {
     this.published = post.published;
     this.createdAt = post.createdAt;
     this.updatedAt = post.updatedAt;
+    this.author = {
+      id: post.author.id,
+      name: post.author.name,
+      email: post.author.email,
+    };
   }
 }
