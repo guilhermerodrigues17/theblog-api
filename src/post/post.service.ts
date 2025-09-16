@@ -94,5 +94,29 @@ export class PostService {
     });
   }
 
+  async update(postData: Partial<Post>, dto: UpdatePostDto, author: User) {
+    if (Object.keys(dto).length === 0) {
+      throw new BadRequestException('invalid data');
+    }
+
+    const post = await this.findOneOwned(postData, author);
+
+    post.title = dto.title ?? post.title;
+    post.excerpt = dto.excerpt ?? post.excerpt;
+    post.content = dto.content ?? post.content;
+    post.published = dto.published ?? post.published;
+    post.coverImageUrl = dto.coverImageUrl ?? post.coverImageUrl;
+
+    return this.postRepository.save(post);
+  }
+
+  async remove(postData: Partial<Post>, author: User) {
+    const post = await this.findOne(postData);
+    await this.postRepository.delete({
+      ...postData,
+      author: { id: author.id },
+    });
+
+    return post;
   }
 }

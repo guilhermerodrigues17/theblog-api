@@ -57,13 +57,24 @@ export class PostController {
     return posts.map(post => new PostResponseDto(post));
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, updatePostDto);
+  @UseGuards(JwtAuthGuard)
+  @Patch('me/:id')
+  async update(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdatePostDto,
+  ) {
+    const updatedPost = await this.postService.update({ id }, dto, req.user);
+    return new PostResponseDto(updatedPost);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.postService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Delete('me/:id')
+  async remove(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const deletedPost = await this.postService.remove({ id }, req.user);
+    return new PostResponseDto(deletedPost);
   }
 }
