@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpExceptionBody,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Response } from 'express';
@@ -17,7 +18,10 @@ type ExceptionResponse = {
 
 @Catch()
 export class GlobalExceptionsFilter implements ExceptionFilter {
+  private readonly logger: Logger = new Logger(GlobalExceptionsFilter.name);
+
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
+
   catch(exception: unknown, host: ArgumentsHost) {
     const { httpAdapter } = this.httpAdapterHost;
     const response = host.switchToHttp().getResponse<Response>();
@@ -53,6 +57,15 @@ export class GlobalExceptionsFilter implements ExceptionFilter {
           errorName = error;
         }
       }
+    }
+
+    if (!(exception instanceof HttpException)) {
+      this.logger.error(
+        'Unexpected error',
+        (exception as Error).stack || 'no stack',
+      );
+    } else {
+      this.logger.warn(`${httpStatus} - ${errorName}: ${messages.join(' | ')}`);
     }
 
     const responseBody: ExceptionResponse = {
