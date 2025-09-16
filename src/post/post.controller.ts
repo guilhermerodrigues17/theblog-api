@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -27,14 +28,33 @@ export class PostController {
     return new PostResponseDto(createdPost);
   }
 
-  @Get()
-  findAll() {
-    return this.postService.findAll();
+  @UseGuards(JwtAuthGuard)
+  @Get('me/:id')
+  async findOneOwned(
+    @Req() req: AuthenticatedRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    const post = await this.postService.findOneOwned({ id }, req.user);
+    return new PostResponseDto(post);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async findAllOwned(@Req() req: AuthenticatedRequest) {
+    const posts = await this.postService.findAllOwned(req.user);
+    return posts.map(post => new PostResponseDto(post));
+  }
+
+  @Get(':slug')
+  async findOnePublic(@Param('slug') slug: string) {
+    const post = await this.postService.findOnePublic({ slug });
+    return new PostResponseDto(post);
+  }
+
+  @Get()
+  async findAllPublic() {
+    const posts = await this.postService.findAllPublic();
+    return posts.map(post => new PostResponseDto(post));
   }
 
   @Patch(':id')

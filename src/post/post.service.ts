@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { Repository } from 'typeorm';
@@ -39,19 +44,55 @@ export class PostService {
     return postCreated;
   }
 
-  findAll() {
-    return `This action returns all post`;
+  async findOneOwned(postData: Partial<Post>, author: User) {
+    const post = await this.postRepository.findOne({
+      where: {
+        ...postData,
+        author: { id: author.id },
+      },
+      relations: ['author'],
+    });
+
+    if (!post) throw new NotFoundException('post not found');
+
+    return post;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+  async findOne(postData: Partial<Post>) {
+    const post = await this.postRepository.findOne({
+      where: postData,
+      relations: ['author'],
+    });
+
+    if (!post) throw new NotFoundException('post not found');
+
+    return post;
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+  async findOnePublic(postData: Partial<Post>) {
+    const post = await this.findOne({ ...postData, published: true });
+    return post;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async findAllOwned(author: User) {
+    const posts = await this.postRepository.find({
+      where: {
+        author: { id: author.id },
+      },
+      relations: ['author'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return posts;
+  }
+
+  findAllPublic() {
+    return this.postRepository.find({
+      where: { published: true },
+      relations: ['author'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   }
 }
