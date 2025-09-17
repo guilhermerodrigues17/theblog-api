@@ -7,8 +7,9 @@ import { PostModule } from './post/post.module';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UploadModule } from './upload/upload.module';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { GlobalExceptionsFilter } from './common/filters/global-exceptions.filter';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -28,6 +29,15 @@ import { GlobalExceptionsFilter } from './common/filters/global-exceptions.filte
       synchronize: process.env.DB_SYNCHRONIZE === '1',
       autoLoadEntities: process.env.DB_AUTO_LOAD_ENTITIES === '1',
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+          blockDuration: 10000,
+        },
+      ],
+    }),
     UploadModule,
   ],
   controllers: [AppController],
@@ -36,6 +46,10 @@ import { GlobalExceptionsFilter } from './common/filters/global-exceptions.filte
     {
       provide: APP_FILTER,
       useClass: GlobalExceptionsFilter,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
