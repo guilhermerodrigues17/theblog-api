@@ -1,0 +1,16 @@
+# Local deps
+node_modules
+
+# Local build files
+dist
+
+# Env files
+.env
+*.log
+
+# Git metadata
+.git
+.gitignore
+
+# Docker files
+Dockerfile
